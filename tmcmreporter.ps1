@@ -15,15 +15,15 @@
 	https://github.com/veracompadriatics/TMCMReporter
 #>
 
-$starttime='2017-11-01'; # start time to include data
-$endtime='2017-11-30'; # end time to include data
+$starttime='2019-07-01'; # start time to include data
+$endtime='2019-09-30'; # end time to include data
 $timeresolution=10; # time slot aggregation or resolution; month=7, day=10, minute=16
 $dbconfiguration=@{
     db_server=''; # SQL SERVER NAME OR IP ADDRESS
     db_name='db_ControlManager'; # TMCM DATABASE NAME
-    db_user='sa'; # DB USER
-    db_pass=''; # DB PASS
-};
+    db_user='sa'; # DB USER, if not using integrated authentication
+    db_pass=''; # DB PASS, if not using integrated authentication, see $SqlConnection.ConnectionString below
+}
 
 # list of SQL queries used to get TMCM datasets of interest
 $queries=@{
@@ -153,7 +153,7 @@ $queries=@{
 		(SourceIP like '10.%' OR SourceIP like '192.168.%' OR SourceIP like '172.%') AND EventType=2
 		GROUP BY CONVERT(char($timeresolution), LogGenLocalDatetime, 20),dbo.tb_PersonalFirewallLog.VirusName,dbo.tb_PersonalFirewallLog.SourceIP
 		ORDER BY 'DateTime'"
-	# C&C detections grouped by DATETIME, ENDPOINT, TMCM FOLDER, DOMAIN
+	# C&C detections grouped by DATETIME, ENDPOINT, TMCM FOLDER, DOMAIN, SOURCE TYPE
 	"CnCDetectionsBy-Date-Endpoint-Folder-Domain"="IF Exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'temp_table')
 		BEGIN
 		DROP TABLE temp_table
@@ -172,7 +172,13 @@ $queries=@{
 		WHERE (B.Type = 4);
 		SELECT 
 		CONVERT(char($timeresolution), DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), A.CLF_LogGenerationUTCTime), 20) AS 'DateTime', 
-		C.DisplayName+' - '+B.DisplayName AS 'Endpoint', D.DisplayName AS 'TMCMFolderName', E.DisplayName AS 'Domain', COUNT(*) AS 'Detections'
+		C.DisplayName+' - '+B.DisplayName AS 'Endpoint', D.DisplayName AS 'TMCMFolderName', E.DisplayName AS 'Domain', 
+		CASE
+			WHEN A.SLF_CCCA_DetectionSource=0 THEN 'Global'
+			WHEN A.SLF_CCCA_DetectionSource=1 THEN 'Virtual Analyzer'
+			WHEN A.SLF_CCCA_DetectionSource=2 THEN 'User Defined'
+			ELSE 'Other'
+		END AS 'DetectionSourceType', COUNT(*) AS 'Detections'
 		FROM temp_table D, temp_table2 E, dbo.tb_CnCDetection A
 		INNER JOIN tb_TreeNode B ON A.SLF_ClientGUID=B.Guid
 		INNER JOIN tb_TreeNode C ON A.SLF_ProductGUID=C.Guid
@@ -180,7 +186,12 @@ $queries=@{
 		CLF_LogGenerationUTCTime>='$starttime' AND CLF_LogGenerationUTCTime<='$endtime'
 		GROUP BY 
 		CONVERT(char($timeresolution), DATEADD(mi, DATEDIFF(mi, GETUTCDATE(), GETDATE()), A.CLF_LogGenerationUTCTime), 20),
-		B.DisplayName,C.DisplayName,D.DisplayName,E.DisplayName ORDER BY 'DateTime'"
+		B.DisplayName,C.DisplayName,D.DisplayName,E.DisplayName,CASE
+			WHEN A.SLF_CCCA_DetectionSource=0 THEN 'Global'
+			WHEN A.SLF_CCCA_DetectionSource=1 THEN 'Virtual Analyzer'
+			WHEN A.SLF_CCCA_DetectionSource=2 THEN 'User Defined'
+			ELSE 'Other'
+		ORDER BY 'DateTime'"
 	# Number of Officescan endpoints per FOLDER, DOMAIN, VERSION
 	"EndpointsBy-Folder-Domain-Version"="
 	SELECT E.DisplayName TMCMFolderName, C.DisplayName Domain, F.EI_ProductVersion ProductVersion, COUNT(*) AS EndpointCount
@@ -205,7 +216,8 @@ $queries.Keys | ForEach-Object  {
 	try {
 		$sqlqueryname=$_;
 		$SqlConnection = New-Object System.Data.SqlClient.SqlConnection
-		$SqlConnection.ConnectionString = "Server=$($dbconfiguration.db_server); Database=$($dbconfiguration.db_name); Integrated Security=False; User ID=$($dbconfiguration.db_user); Password=$($dbconfiguration.db_pass);";
+		#$SqlConnection.ConnectionString = "Server=$($dbconfiguration.db_server); Database=$($dbconfiguration.db_name); Integrated Security=False; User ID=$($dbconfiguration.db_user); Password=$($dbconfiguration.db_pass);";
+		$SqlConnection.ConnectionString = "Server=$($dbconfiguration.db_server); Database=$($dbconfiguration.db_name); Integrated Security=True;";
 		$SqlConnection.Open()
 		$SqlCmd = New-Object System.Data.SqlClient.SqlCommand
 		$SqlCmd.CommandText=$queries.Item($sqlqueryname)
