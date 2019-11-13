@@ -191,6 +191,7 @@ $queries=@{
 			WHEN A.SLF_CCCA_DetectionSource=1 THEN 'Virtual Analyzer'
 			WHEN A.SLF_CCCA_DetectionSource=2 THEN 'User Defined'
 			ELSE 'Other'
+			END
 		ORDER BY 'DateTime'"
 	# Number of Officescan endpoints per FOLDER, DOMAIN, VERSION
 	"EndpointsBy-Folder-Domain-Version"="
