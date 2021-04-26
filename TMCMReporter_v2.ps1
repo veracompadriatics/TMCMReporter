@@ -8,6 +8,7 @@
 	These CSV files represent following datasets:
   - malware detection log
   - network virus detection log
+  - CNC detection log
   - a snapshot of endpoint count per server and subgroup
   These can be further
 	processed by any BI analysis tool (Excel Pivot tables, PowerBI, etc).
