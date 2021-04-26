@@ -27,7 +27,7 @@ $dbconfiguration=@{
 
 # list of SQL queries used to get TMCM datasets of interest
 $queries=@{
-	# Malware detections
+# Malware detections
 	"MalwareDetections"="IF Exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'temp_table')
 BEGIN
 	DROP TABLE temp_table
@@ -66,7 +66,7 @@ WHERE A.CLF_EntityID = D.Guid and A.VLF_ClientGUID=E.Guid
 --AND CLF_LogGenerationTime>='$starttime' AND CLF_LogGenerationTime<='$endtime'
 ORDER BY A.CLF_LogGenerationTime
 "
-	# Network virus attacks grouped by DATETIME, NETWORK ATTACK NAME, IP ADDRESS
+# Network virus attacks
 	"NetworkVirusDetections"="SELECT  CVW_FromTime, 
 dbo.tb_CVW_Log.VLF_VirusName AS 'AttackName', dbo.tb_CVW_Log.VLF_InfectionSource AS 'Endpoint', CVW_VirusCount AS 'Count'
 FROM dbo.tb_CVW_Log 
@@ -80,7 +80,7 @@ FROM dbo.tb_PersonalFirewallLog
 WHERE 
 --LogGenLocalDatetime>='$starttime' AND LogGenLocalDatetime<='$endtime' AND
 (SourceIP like '10.%' OR SourceIP like '192.168.%' OR SourceIP like '172.%') AND EventType=2"
-	# C&C detections grouped by DATETIME, ENDPOINT, TMCM FOLDER, DOMAIN, SOURCE TYPE
+# C&C detections
 	"CnCDetections"="IF Exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'temp_table')
 		BEGIN
 		DROP TABLE temp_table
@@ -111,8 +111,8 @@ WHERE
 		INNER JOIN tb_TreeNode C ON A.SLF_ProductGUID=C.Guid
 		WHERE A.SLF_ProductGUID = D.Guid and A.SLF_ClientGUID=E.Guid
 		-- AND CLF_LogGenerationUTCTime>='$starttime' AND CLF_LogGenerationUTCTime<='$endtime'"
-	# Number of Officescan endpoints per FOLDER, DOMAIN, VERSION
-	"EndpointsBy-Folder-Domain-Version"="
+# Number of Officescan endpoints per FOLDER, DOMAIN, VERSION
+	"EndpointsCount"="
 	SELECT E.DisplayName TMCMFolderName, C.DisplayName Domain, F.EI_ProductVersion ProductVersion, COUNT(*) AS EndpointCount
 		FROM tb_TreeNode B
 		INNER JOIN tb_TreeNode C ON B.ParentGuid = C.Guid
