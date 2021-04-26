@@ -18,8 +18,8 @@
 	https://github.com/veracompadriatics/TMCMReporter
 #>
 
-$starttime='2021-01-01'; # start time to include data
-$endtime='2021-03-31'; # end time to include data
+#$starttime='2021-01-01'; # start time to include data
+#$endtime='2021-03-31'; # end time to include data
 $dbconfiguration=@{
     db_server=''; # SQL SERVER NAME OR IP ADDRESS
     db_name='db_ControlManager'; # TMCM DATABASE NAME    
@@ -112,7 +112,7 @@ WHERE
 		WHERE A.SLF_ProductGUID = D.Guid and A.SLF_ClientGUID=E.Guid
 		-- AND CLF_LogGenerationUTCTime>='$starttime' AND CLF_LogGenerationUTCTime<='$endtime'"
 # Number of Officescan endpoints per FOLDER, DOMAIN, VERSION
-	"EndpointsCount"="
+"EndpointsCount"="
 	SELECT E.DisplayName TMCMFolderName, C.DisplayName Domain, F.EI_ProductVersion ProductVersion, COUNT(*) AS EndpointCount
 		FROM tb_TreeNode B
 		INNER JOIN tb_TreeNode C ON B.ParentGuid = C.Guid
