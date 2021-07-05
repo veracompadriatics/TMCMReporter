@@ -28,19 +28,19 @@ $dbconfiguration=@{
 # list of SQL queries used to get TMCM datasets of interest
 $queries=@{
 # Malware detections
-	"MalwareDetections"="IF Exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'temp_table')
+	"MalwareDetections"="IF Exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '#temp_table')
 BEGIN
-	DROP TABLE temp_table
+	DROP TABLE #temp_table
 END;
-SELECT B.Guid AS GUID, C.DisplayName AS DisplayName INTO temp_table
+SELECT B.Guid AS GUID, C.DisplayName AS DisplayName INTO #temp_table
 	FROM tb_TreeNode B INNER JOIN tb_TreeNode C
 	ON B.ParentGuid = C.Guid
 	WHERE (B.Type = 2);
-IF Exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'temp_table2')
+IF Exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '#temp_table2')
 BEGIN
-	DROP TABLE temp_table2
+	DROP TABLE #temp_table2
 END;
-SELECT B.Guid AS GUID, C.DisplayName AS DisplayName INTO temp_table2
+SELECT B.Guid AS GUID, C.DisplayName AS DisplayName INTO #temp_table2
 	FROM tb_TreeNode B INNER JOIN tb_TreeNode C
 	ON B.ParentGuid = C.Guid
 	WHERE (B.Type = 4);
@@ -58,7 +58,7 @@ WHEN A.VLF_FilePath LIKE '%:\Program Files\%' THEN 'Program Files'
 WHEN A.VLF_FileName LIKE '%:\Program Files\%' THEN 'Program Files'
 ELSE 'Other'
 END AS 'FilePath'
-FROM temp_table D, temp_table2 E, dbo.tb_AVVirusLog A
+FROM #temp_table D, #temp_table2 E, dbo.tb_AVVirusLog A
 INNER JOIN tb_TreeNode B ON A.VLF_ClientGUID=B.Guid
 INNER JOIN tb_TreeNode C ON A.CLF_EntityID=C.Guid
 INNER JOIN tb_EntityInfo F ON B.Guid = F.EI_EntityID
@@ -81,19 +81,19 @@ WHERE
 --LogGenLocalDatetime>='$starttime' AND LogGenLocalDatetime<='$endtime' AND
 (SourceIP like '10.%' OR SourceIP like '192.168.%' OR SourceIP like '172.%') AND EventType=2"
 # C&C detections
-	"CnCDetections"="IF Exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'temp_table')
+	"CnCDetections"="IF Exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '#temp_table')
 		BEGIN
-		DROP TABLE temp_table
+		DROP TABLE #temp_table
 		END;
-		SELECT B.Guid AS GUID, C.DisplayName AS DisplayName INTO temp_table
+		SELECT B.Guid AS GUID, C.DisplayName AS DisplayName INTO #temp_table
 		FROM tb_TreeNode B INNER JOIN tb_TreeNode C
 		ON B.ParentGuid = C.Guid
 		WHERE (B.Type = 2);
-		IF Exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'temp_table2')
+		IF Exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '#temp_table2')
 		BEGIN
-		DROP TABLE temp_table2
+		DROP TABLE #temp_table2
 		END;
-		SELECT B.Guid AS GUID, C.DisplayName AS DisplayName INTO temp_table2
+		SELECT B.Guid AS GUID, C.DisplayName AS DisplayName INTO #temp_table2
 		FROM tb_TreeNode B INNER JOIN tb_TreeNode C
 		ON B.ParentGuid = C.Guid
 		WHERE (B.Type = 4);
@@ -106,7 +106,7 @@ WHERE
 			WHEN A.SLF_CCCA_DetectionSource=2 THEN 'User Defined'
 			ELSE 'Other'
 		END AS 'DetectionSourceType'
-		FROM temp_table D, temp_table2 E, dbo.tb_CnCDetection A
+		FROM #temp_table D, #temp_table2 E, dbo.tb_CnCDetection A
 		INNER JOIN tb_TreeNode B ON A.SLF_ClientGUID=B.Guid
 		INNER JOIN tb_TreeNode C ON A.SLF_ProductGUID=C.Guid
 		WHERE A.SLF_ProductGUID = D.Guid and A.SLF_ClientGUID=E.Guid
